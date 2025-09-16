@@ -57,7 +57,7 @@ def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
     ws = wb.active
     ws.title = "WB"
 
-    headers = ["Ссылка", "Название", "Количество продаж"] + [f"Изображение {i}" for i in range(1, max_images + 1)]
+    headers = ["Ссылка", "Название", "Количество продаж", "Сумма продаж"] + [f"Изображение {i}" for i in range(1, max_images + 1)]
     ws.append(headers)
 
     for p in products:
@@ -65,9 +65,10 @@ def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
         url = f"https://www.wildberries.ru/catalog/{product_id}/detail.aspx" if product_id else ''
         name = p.get('name', '')
         sales = p.get('sales', 0)
+        revenue = p.get('revenue', 0)
         images = (p.get('image_urls', []) or [])[:max_images]
         # Формируем строку без изображений
-        row = [url, name, sales]
+        row = [url, name, sales, revenue]
         # Добавляем ячейки с формулами IMAGE()
         for img in images:
             # Формула Excel: =IMAGE("url"; 1)
