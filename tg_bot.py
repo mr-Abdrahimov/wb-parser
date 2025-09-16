@@ -41,6 +41,7 @@ COOKIES_FILE = os.getenv('COOKIES_FILE', 'cookies.txt')
 def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
     """Готовит Excel (.xlsx) в памяти.
     Колонки: Ссылка, Название, Количество продаж, Изображение 1..N (IMAGE("url";1))
+    Высота строк ~180px, ширина колонок с изображениями ~240px.
     """
     from openpyxl import Workbook
     from openpyxl.utils import get_column_letter
@@ -69,18 +70,30 @@ def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
         row = [url, name, sales]
         # Добавляем ячейки с формулами IMAGE()
         for img in images:
-            # Формула Excel: =IMAGE("url"; 1) для Google Sheets совместима как IMAGE, для Excel 365 поддержка функции IMAGE()
-            # В русской локали разделитель аргументов — ';'
+            # Формула Excel: =IMAGE("url"; 1)
             row.append(f"=IMAGE(\"{img}\"; 1)")
         # Если изображений меньше максимума — добиваем пустыми
         if len(images) < max_images:
             row += [""] * (max_images - len(images))
         ws.append(row)
 
-    # Немного ширины колонкам
-    col_widths = [45, 50, 18] + [22] * max_images
-    for idx, width in enumerate(col_widths, start=1):
+    # Устанавливаем размеры: высота строк и ширина колонок
+    # Excel измеряет высоту в пунктах (~0.75 pt на пиксель при 96 DPI)
+    row_height_points = 180 * 0.75  # ≈ 142.5 pt
+    for r in range(1, ws.max_row + 1):
+        ws.row_dimensions[r].height = row_height_points
+
+    # Ширина колонок: приблизим 240 px к ширине Excel (~ px/7)
+    image_col_width = round(240 / 7.0, 2)  # ≈ 34.29
+
+    # Зададим разумные ширины для первых трёх колонок
+    base_widths = [45, 50, 18]
+    for idx, width in enumerate(base_widths, start=1):
         ws.column_dimensions[get_column_letter(idx)].width = width
+
+    # Колонки изображений начинаются с 4-й
+    for col_idx in range(4, 4 + max_images):
+        ws.column_dimensions[get_column_letter(col_idx)].width = image_col_width
 
     stream = io.BytesIO()
     wb.save(stream)
