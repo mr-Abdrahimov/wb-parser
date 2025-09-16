@@ -278,16 +278,85 @@ class WBParser:
             
             # Добавляем данные из WB
             if product_id in wb_products:
-                mayak_product['pics'] = wb_products[product_id]['pics']
+                pics_count = wb_products[product_id]['pics']
+                mayak_product['pics'] = pics_count
+                
+                # Генерируем ссылки на изображения
+                image_urls = self.generate_image_urls(product_id, pics_count)
+                mayak_product['image_urls'] = image_urls
+                
                 # Можно добавить и другие данные из WB если нужно
                 # mayak_product['wb_name'] = wb_products[product_id]['wb_data'].get('name', '')
             else:
                 mayak_product['pics'] = 0  # Если данных нет, ставим 0
+                mayak_product['image_urls'] = []
             
             combined_products.append(mayak_product)
         
         logger.info(f"Объединено {len(combined_products)} товаров с данными WB и Mayak")
         return combined_products
+    
+    def generate_image_urls(self, product_id: int, pics_count: int) -> List[str]:
+        """
+        Генерирует ссылки на изображения товара WildBerries
+        
+        Args:
+            product_id: ID товара
+            pics_count: Количество изображений
+            
+        Returns:
+            Список ссылок на изображения
+        """
+        if pics_count <= 0:
+            return []
+        
+        # Определяем vol (обрезаем последние 5 цифр)
+        vol = product_id // 100000
+        
+        # Определяем номер сервера по vol
+        def get_basket_host(vol):
+            if 0 <= vol <= 143:
+                return "01"
+            elif 144 <= vol <= 287:
+                return "02"
+            elif 288 <= vol <= 431:
+                return "03"
+            elif 432 <= vol <= 719:
+                return "04"
+            elif 720 <= vol <= 1007:
+                return "05"
+            elif 1008 <= vol <= 1061:
+                return "06"
+            elif 1062 <= vol <= 1115:
+                return "07"
+            elif 1116 <= vol <= 1169:
+                return "08"
+            elif 1170 <= vol <= 1313:
+                return "09"
+            elif 1314 <= vol <= 1601:
+                return "10"
+            elif 1602 <= vol <= 1655:
+                return "11"
+            elif 1656 <= vol <= 1919:
+                return "12"
+            elif 1920 <= vol <= 2045:
+                return "13"
+            elif 2046 <= vol <= 2447:
+                return "14"
+            else:
+                return "19"
+        
+        basket_host = get_basket_host(vol)
+        part = product_id // 1000  # part это ID без последних 3 цифр
+        
+        # Генерируем ссылки на все изображения
+        image_urls = []
+        for i in range(1, pics_count + 1):
+            url = f"https://basket-{basket_host}.wbbasket.ru/vol{vol}/part{part}/{product_id}/images/big/{i}.webp"
+            image_urls.append(url)
+        
+        logger.info(f"Сгенерировано {len(image_urls)} ссылок на изображения для товара {product_id}")
+        return image_urls
     
     def search_and_get_detailed_info(self, query: str, page: int = 1, max_products: int = None) -> Dict[str, Any]:
         """

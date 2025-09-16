@@ -42,6 +42,18 @@ def main():
         help='Показать результаты в виде таблицы'
     )
     
+    parser.add_argument(
+        '--show-images',
+        action='store_true',
+        help='Показать ссылки на изображения'
+    )
+    
+    parser.add_argument(
+        '--images-only',
+        action='store_true',
+        help='Показать только ссылки на изображения (по одной на строку)'
+    )
+    
     args = parser.parse_args()
     
     # Загружаем cookies
@@ -70,10 +82,29 @@ def main():
     
     print(f"✅ Найдено {len(products)} товаров")
     
-    if args.show_table:
+    if args.images_only:
+        # Показываем только ссылки на изображения
+        print("\n🖼️ Ссылки на изображения:")
+        for product in products:
+            image_urls = product.get('image_urls', [])
+            for url in image_urls:
+                print(url)
+    
+    elif args.show_table:
         # Показываем таблицу
         table = wb_parser.display_products_by_sales(products)
         print("\n" + table)
+        
+        if args.show_images:
+            print("\n🖼️ Ссылки на изображения:")
+            for product in products:
+                product_id = product.get('id', 'N/A')
+                image_urls = product.get('image_urls', [])
+                if image_urls:
+                    print(f"\nТовар {product_id} ({len(image_urls)} изображений):")
+                    for i, url in enumerate(image_urls, 1):
+                        print(f"  {i}. {url}")
+    
     else:
         # Показываем простой список
         print("\n📋 Список товаров (отсортированы по продажам):")
@@ -85,6 +116,16 @@ def main():
             sales = product.get('sales', 0)
             pics = product.get('pics', 0)
             print(f"{product_id} | {sales:,} | {pics}")
+        
+        if args.show_images:
+            print("\n🖼️ Ссылки на изображения:")
+            for product in products:
+                product_id = product.get('id', 'N/A')
+                image_urls = product.get('image_urls', [])
+                if image_urls:
+                    print(f"\nТовар {product_id} ({len(image_urls)} изображений):")
+                    for i, url in enumerate(image_urls, 1):
+                        print(f"  {i}. {url}")
 
 
 if __name__ == "__main__":
