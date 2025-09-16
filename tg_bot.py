@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -37,21 +38,38 @@ COOKIES_FILE = os.getenv('COOKIES_FILE', 'cookies.txt')
 
 
 def products_to_csv_bytes(products: List[Dict[str, Any]]) -> bytes:
-    """Готовит CSV в памяти с колонками: Ссылка, Название, Количество продаж, Изображения"""
+    """Готовит CSV в памяти.
+    Колонки: Ссылка, Название, Количество продаж, Изображение 1..N (каждое фото в своём столбце)
+    """
     import csv
+
+    # Определяем максимальное число изображений среди всех товаров
+    max_images = 0
+    for p in products:
+        imgs = p.get('image_urls', []) or []
+        if len(imgs) > max_images:
+            max_images = len(imgs)
 
     output = io.StringIO()
     writer = csv.writer(output)
-    writer.writerow(["Ссылка", "Название", "Количество продаж", "Изображения"])
 
+    # Заголовки
+    headers = ["Ссылка", "Название", "Количество продаж"]
+    headers += [f"Изображение {i}" for i in range(1, max_images + 1)]
+    writer.writerow(headers)
+
+    # Строки
     for p in products:
         product_id = p.get('id', '')
         url = f"https://www.wildberries.ru/catalog/{product_id}/detail.aspx" if product_id else ''
         name = p.get('name', '')
         sales = p.get('sales', 0)
-        images = p.get('image_urls', []) or []
-        images_joined = "\n".join(images)
-        writer.writerow([url, name, sales, images_joined])
+        images = (p.get('image_urls', []) or [])[:max_images]
+        # Дополняем пустыми ячейками до max_images
+        if len(images) < max_images:
+            images = images + [""] * (max_images - len(images))
+        row = [url, name, sales] + images
+        writer.writerow(row)
 
     data = output.getvalue().encode('utf-8-sig')
     output.close()
