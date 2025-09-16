@@ -313,38 +313,72 @@ class WBParser:
         # Определяем vol (обрезаем последние 5 цифр)
         vol = product_id // 100000
         
-        # Определяем номер сервера по vol
+        # Определяем номер сервера по vol (новые диапазоны)
         def get_basket_host(vol):
             if 0 <= vol <= 143:
                 return "01"
-            elif 144 <= vol <= 287:
+            elif vol <= 287:
                 return "02"
-            elif 288 <= vol <= 431:
+            elif vol <= 431:
                 return "03"
-            elif 432 <= vol <= 719:
+            elif vol <= 719:
                 return "04"
-            elif 720 <= vol <= 1007:
+            elif vol <= 1007:
                 return "05"
-            elif 1008 <= vol <= 1061:
+            elif vol <= 1061:
                 return "06"
-            elif 1062 <= vol <= 1115:
+            elif vol <= 1115:
                 return "07"
-            elif 1116 <= vol <= 1169:
+            elif vol <= 1169:
                 return "08"
-            elif 1170 <= vol <= 1313:
+            elif vol <= 1313:
                 return "09"
-            elif 1314 <= vol <= 1601:
+            elif vol <= 1601:
                 return "10"
-            elif 1602 <= vol <= 1655:
+            elif vol <= 1655:
                 return "11"
-            elif 1656 <= vol <= 1919:
+            elif vol <= 1919:
                 return "12"
-            elif 1920 <= vol <= 2045:
+            elif vol <= 2045:
                 return "13"
-            elif 2046 <= vol <= 2447:
+            elif vol <= 2189:
                 return "14"
-            else:
+            elif vol <= 2405:
+                return "15"
+            elif vol <= 2621:
+                return "16"
+            elif vol <= 2837:
+                return "17"
+            elif vol <= 3053:
+                return "18"
+            elif vol <= 3269:
                 return "19"
+            elif vol <= 3485:
+                return "20"
+            elif vol <= 3701:
+                return "21"
+            elif vol <= 3917:
+                return "22"
+            elif vol <= 4133:
+                return "23"
+            elif vol <= 4349:
+                return "24"
+            elif vol <= 4565:
+                return "25"
+            elif vol <= 4877:
+                return "26"
+            elif vol <= 5189:
+                return "27"
+            elif vol <= 5501:
+                return "28"
+            elif vol <= 5813:
+                return "29"
+            elif vol <= 6125:
+                return "30"
+            elif vol <= 6437:
+                return "31"
+            else:
+                return "32"
         
         basket_host = get_basket_host(vol)
         part = product_id // 1000  # part это ID без последних 3 цифр

@@ -27,14 +27,28 @@ def test_image_url_generation():
             'pics': 13,
             'expected_vol': 3068,
             'expected_part': 306897,
-            'expected_host': '19'  # vol 3068 > 2447 = host 19
+            'expected_host': '19'  # vol 3068 попадает в диапазон <= 3269 = host 19
         },
         {
             'product_id': 64775386,
             'pics': 5,
             'expected_vol': 647,
             'expected_part': 64775,
-            'expected_host': '04'  # vol 647 попадает в диапазон 432-719 = host 04
+            'expected_host': '04'  # vol 647 попадает в диапазон <= 719 = host 04
+        },
+        {
+            'product_id': 500012345,
+            'pics': 3,
+            'expected_vol': 5000,
+            'expected_part': 500012,
+            'expected_host': '27'  # vol 5000 попадает в диапазон <= 5189 = host 27
+        },
+        {
+            'product_id': 700012345,
+            'pics': 2,
+            'expected_vol': 7000,
+            'expected_part': 700012,
+            'expected_host': '32'  # vol 7000 > 6437 = host 32 (default)
         }
     ]
     
