@@ -7,6 +7,8 @@ WB Sales Parser - простой парсер для получения ID, pics
 import argparse
 import logging
 import sys
+import csv
+from typing import List, Dict, Any
 from wb_parser import WBParser
 from mayak_api import parse_cookies_string
 
@@ -17,6 +19,32 @@ logging.basicConfig(
     datefmt='%H:%M:%S'
 )
 logger = logging.getLogger(__name__)
+
+def write_csv(path: str, products: List[Dict[str, Any]]):
+    """Сохраняет CSV со столбцами: Ссылка, Название, Количество продаж, Изображения"""
+    fieldnames = ["Ссылка", "Название", "Количество продаж", "Изображения"]
+    
+    try:
+        with open(path, 'w', newline='', encoding='utf-8-sig') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for p in products:
+                product_id = p.get('id', '')
+                url = f"https://www.wildberries.ru/catalog/{product_id}/detail.aspx" if product_id else ''
+                name = p.get('name', '')
+                sales = p.get('sales', 0)
+                image_urls = p.get('image_urls', [])
+                images_joined = '\n'.join(image_urls) if image_urls else ''
+                writer.writerow({
+                    "Ссылка": url,
+                    "Название": name,
+                    "Количество продаж": sales,
+                    "Изображения": images_joined,
+                })
+        logger.info(f"CSV сохранён: {path}")
+    except Exception as e:
+        logger.error(f"Ошибка записи CSV: {e}")
+        sys.exit(1)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -61,6 +89,12 @@ def main():
         help='Показать только ссылки на изображения (по одной на строку)'
     )
     
+    parser.add_argument(
+        '--csv',
+        type=str,
+        help='Сохранить результат в CSV файл (столбцы: Ссылка, Название, Количество продаж, Изображения)'
+    )
+    
     args = parser.parse_args()
     
     # Загружаем cookies
@@ -90,45 +124,52 @@ def main():
         max_products=args.max_products
     )
     
-    if combined_products:
-        if args.images_only:
-            print("\n🖼️ Ссылки на изображения:")
-            for product in combined_products:
-                image_urls = product.get('image_urls', [])
-                for url in image_urls:
-                    print(url)
-        elif args.show_table:
-            print("\n" + wb_parser.display_products_by_sales(combined_products))
-            if args.show_images:
-                print("\n🖼️ Ссылки на изображения:")
-                for product in combined_products:
-                    product_id = product.get('id', 'N/A')
-                    image_urls = product.get('image_urls', [])
-                    if image_urls:
-                        print(f"\nТовар {product_id} ({len(image_urls)} изображений):")
-                        for i, url in enumerate(image_urls, 1):
-                            print(f"  {i}. {url}")
-        else:
-            print("\n📋 Список товаров (отсортированы по продажам):")
-            print("ID товара | Продажи | Фото")
-            print("-" * 30)
-            for product in combined_products:
-                product_id = product.get('id', 'N/A')
-                sales = product.get('sales', 0)
-                pics = product.get('pics', 0)
-                print(f"{product_id} | {sales:,} | {pics}")
-            if args.show_images:
-                print("\n🖼️ Ссылки на изображения:")
-                for product in combined_products:
-                    product_id = product.get('id', 'N/A')
-                    image_urls = product.get('image_urls', [])
-                    if image_urls:
-                        print(f"\nТовар {product_id} ({len(image_urls)} изображений):")
-                        for i, url in enumerate(image_urls, 1):
-                            print(f"  {i}. {url}")
-    else:
+    if not combined_products:
         logger.warning("Не удалось получить подробную информацию о товарах.")
         sys.exit(1)
+    
+    # Экспорт CSV при необходимости
+    if args.csv:
+        write_csv(args.csv, combined_products)
+        print(f"✅ CSV сохранён: {args.csv}")
+        return
+    
+    # Иначе, обычный вывод
+    if args.images_only:
+        print("\n🖼️ Ссылки на изображения:")
+        for product in combined_products:
+            image_urls = product.get('image_urls', [])
+            for url in image_urls:
+                print(url)
+    elif args.show_table:
+        print("\n" + wb_parser.display_products_by_sales(combined_products))
+        if args.show_images:
+            print("\n🖼️ Ссылки на изображения:")
+            for product in combined_products:
+                product_id = product.get('id', 'N/A')
+                image_urls = product.get('image_urls', [])
+                if image_urls:
+                    print(f"\nТовар {product_id} ({len(image_urls)} изображений):")
+                    for i, url in enumerate(image_urls, 1):
+                        print(f"  {i}. {url}")
+    else:
+        print("\n📋 Список товаров (отсортированы по продажам):")
+        print("ID товара | Продажи | Фото")
+        print("-" * 30)
+        for product in combined_products:
+            product_id = product.get('id', 'N/A')
+            sales = product.get('sales', 0)
+            pics = product.get('pics', 0)
+            print(f"{product_id} | {sales:,} | {pics}")
+        if args.show_images:
+            print("\n🖼️ Ссылки на изображения:")
+            for product in combined_products:
+                product_id = product.get('id', 'N/A')
+                image_urls = product.get('image_urls', [])
+                if image_urls:
+                    print(f"\nТовар {product_id} ({len(image_urls)} изображений):")
+                    for i, url in enumerate(image_urls, 1):
+                        print(f"  {i}. {url}")
 
 if __name__ == "__main__":
     main()

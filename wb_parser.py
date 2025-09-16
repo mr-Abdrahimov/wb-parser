@@ -285,11 +285,19 @@ class WBParser:
                 image_urls = self.generate_image_urls(product_id, pics_count)
                 mayak_product['image_urls'] = image_urls
                 
+                # Добавляем название из WB (если есть)
+                wb_full = wb_products[product_id].get('wb_data', {})
+                if isinstance(wb_full, dict):
+                    mayak_product['name'] = wb_full.get('name', '')
+                else:
+                    mayak_product['name'] = ''
+                
                 # Можно добавить и другие данные из WB если нужно
-                # mayak_product['wb_name'] = wb_products[product_id]['wb_data'].get('name', '')
+                # mayak_product['wb_brand'] = wb_full.get('brand', '')
             else:
                 mayak_product['pics'] = 0  # Если данных нет, ставим 0
                 mayak_product['image_urls'] = []
+                mayak_product['name'] = ''
             
             combined_products.append(mayak_product)
         
