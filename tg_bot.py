@@ -41,7 +41,7 @@ COOKIES_FILE = os.getenv('COOKIES_FILE', 'cookies.txt')
 def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
     """Готовит Excel (.xlsx) в памяти.
     Колонки: Ссылка, Название, Количество продаж, Изображение 1..N (IMAGE("url";1))
-    Высота строк ~180px, ширина колонок с изображениями ~240px.
+    Высота строк ~240px, ширина колонок с изображениями ~180px.
     """
     from openpyxl import Workbook
     from openpyxl.utils import get_column_letter
@@ -79,12 +79,12 @@ def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
 
     # Устанавливаем размеры: высота строк и ширина колонок
     # Excel измеряет высоту в пунктах (~0.75 pt на пиксель при 96 DPI)
-    row_height_points = 180 * 0.75  # ≈ 142.5 pt
+    row_height_points = 240 * 0.75  # ≈ 180 pt
     for r in range(1, ws.max_row + 1):
         ws.row_dimensions[r].height = row_height_points
 
-    # Ширина колонок: приблизим 240 px к ширине Excel (~ px/7)
-    image_col_width = round(240 / 7.0, 2)  # ≈ 34.29
+    # Ширина колонок: приблизим 180 px к ширине Excel (~ px/7)
+    image_col_width = round(180 / 7.0, 2)  # ≈ 25.71
 
     # Зададим разумные ширины для первых трёх колонок
     base_widths = [45, 50, 18]
