@@ -40,7 +40,7 @@ COOKIES_FILE = os.getenv('COOKIES_FILE', 'cookies.txt')
 
 def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
     """Готовит Excel (.xlsx) в памяти.
-    Колонки: Ссылка, Название, Количество продаж, Изображение 1..N (IMAGE("url";1))
+    Колонки: Ссылка, Название, Количество продаж, Изображение 1..N
     Высота строк ~240px, ширина колонок с изображениями ~180px.
     """
     from openpyxl import Workbook
@@ -106,7 +106,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Привет! Пришлите текст запроса (query), например:\n"
         "куртка женская черная\n\n"
         "Я выполню парсинг и пришлю .xlsx файл с колонками: \n"
-        "Ссылка, Название, Количество продаж, Изображение 1..N (в ячейках формула IMAGE())."
     )
     await update.message.reply_text(text)
 
