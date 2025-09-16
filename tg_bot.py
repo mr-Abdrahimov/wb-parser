@@ -138,7 +138,9 @@ async def handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
     try:
         parser = WBParser(mayak_cookies=mayak_cookies)
-        products = parser.get_products_detailed_info_with_pics(query=query, page=1, max_products=20)
+        products = parser.get_products_detailed_info_with_pics(query=query, page=1, max_products=100)
+        if products:
+            products = products[:20]
         if not products:
             await update.message.reply_text("Ничего не найдено или ошибка при получении данных.")
             return
