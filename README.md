@@ -30,26 +30,26 @@ pip install -r requirements.txt
 ### Основная команда
 
 ```bash
-python3 wb_sales_parser.py -q "поисковый запрос" --cookies-file cookies.txt
+python3 wb_sales_parser.py -q "поисковый запрос"
 ```
 
 ### Примеры
 
 ```bash
 # Базовый поиск
-python3 wb_sales_parser.py -q "куртка женская черная" --cookies-file cookies.txt
+python3 wb_sales_parser.py -q "куртка женская черная"
 
 # С ограничением количества товаров
-python3 wb_sales_parser.py -q "iPhone" --cookies-file cookies.txt --max-products 10
+python3 wb_sales_parser.py -q "iPhone" --max-products 10
 
 # С табличным выводом
-python3 wb_sales_parser.py -q "телефон Samsung" --cookies-file cookies.txt --show-table
+python3 wb_sales_parser.py -q "телефон Samsung" --show-table
 
 # Показать ссылки на изображения
-python3 wb_sales_parser.py -q "куртка" --cookies-file cookies.txt --show-images
+python3 wb_sales_parser.py -q "куртка" --show-images
 
-# Только ссылки на изображения (по одной на строку)
-python3 wb_sales_parser.py -q "iPhone" --cookies-file cookies.txt --images-only
+# Только ссылки на изображения (по одной на строке)
+python3 wb_sales_parser.py -q "iPhone" --images-only
 ```
 
 ## Формат вывода
@@ -79,7 +79,7 @@ ID товара | Продажи | Фото
 ## Параметры CLI
 
 - `-q, --query` - Поисковый запрос (обязательный)
-- `--cookies-file` - Файл с cookies для Mayak API (обязательный)
+- `--cookies-file` - Файл с cookies для Mayak API (по умолчанию: `cookies.txt`)
 - `--max-products` - Максимальное количество товаров (по умолчанию: 20)
 - `--show-table` - Показать результаты в виде подробной таблицы
 - `--show-images` - Показать ссылки на изображения
@@ -97,42 +97,12 @@ ID товара | Продажи | Фото
 }
 ```
 
-### Входные данные Mayak API  
-```json
-{
-  "64775386": {
-    "sales": 7193,
-    "revenue": 19747579,
-    "lost_revenue": 11161879,
-    "avg_price": 2689
-  }
-}
-```
-
-### Результат (объединенные данные)
+### Выходные данные (после объединения)
 ```json
 [
-  {
-    "id": "315813991",
-    "sales": 23456,
-    "revenue": 67890123,
-    "avg_price": 2894,
-    "pics": 12
-  }
+  {"id": "244733060", "sales": 15678, "revenue": 45234567, "avg_price": 2885, "pics": 15},
+  {"id": "306897066", "sales": 12450, "revenue": 35678901, "avg_price": 2867, "pics": 13}
 ]
-```
-
-## Структура проекта
-
-```
-wb-parser/
-├── wb_parser.py              # Основной модуль парсера
-├── mayak_api.py             # Модуль для работы с Mayak API
-├── wb_sales_parser.py       # CLI для получения списка по продажам
-├── test_pics_integration.py # Тесты интеграции
-├── cookies_example.txt      # Пример файла с cookies
-├── requirements.txt         # Зависимости
-└── README.md               # Документация
 ```
 
 ## Как это работает
@@ -172,21 +142,6 @@ wb-parser/
 | 1920-2045   | 13     |             |        |             |        |
 | 2046-2189   | 14     |             |        |             |        |
 
-### Пример
-Для товара ID `164105063` с `pics = 8`:
-- vol = 164105063 // 100000 = **1641**
-- part = 164105063 // 1000 = **164105** 
-- host = **11** (vol 1641 попадает в диапазон 1602-1655)
-- Ссылки: от `1.webp` до `8.webp`
-
-**Результат:**
-```
-https://basket-11.wbbasket.ru/vol1641/part164105/164105063/images/big/1.webp
-https://basket-11.wbbasket.ru/vol1641/part164105/164105063/images/big/2.webp
-...
-https://basket-11.wbbasket.ru/vol1641/part164105/164105063/images/big/8.webp
-```
-
 ## Тестирование
 
 ```bash
@@ -204,7 +159,6 @@ python3 test_new_ranges.py
 
 - Python 3.7+
 - requests >= 2.31.0
-- Действующие cookies от mayak.bz
 
 ## Ограничения
 
