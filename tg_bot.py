@@ -2,14 +2,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Telegram бот для получения CSV по запросу query.
+Telegram бот для получения Excel (.xlsx) по запросу query.
 
 Команды:
 - /start, /help — инструкции
-- Любой текст — трактуется как query для поиска на WB, бот вернёт CSV-файл
+- Любой текст — трактуется как query для поиска на WB, бот вернёт .xlsx файл
 
 Требования:
 - python-telegram-bot >= 21.4
+- openpyxl >= 3.1.5
 - Файл cookies.txt в корне проекта (по умолчанию)
 """
 
@@ -37,51 +38,61 @@ TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 COOKIES_FILE = os.getenv('COOKIES_FILE', 'cookies.txt')
 
 
-def products_to_csv_bytes(products: List[Dict[str, Any]]) -> bytes:
-    """Готовит CSV в памяти.
-    Колонки: Ссылка, Название, Количество продаж, Изображение 1..N (каждое фото в своём столбце)
+def products_to_xlsx_bytes(products: List[Dict[str, Any]]) -> bytes:
+    """Готовит Excel (.xlsx) в памяти.
+    Колонки: Ссылка, Название, Количество продаж, Изображение 1..N (IMAGE("url";1))
     """
-    import csv
+    from openpyxl import Workbook
+    from openpyxl.utils import get_column_letter
 
-    # Определяем максимальное число изображений среди всех товаров
+    # Определяем максимальное число изображений
     max_images = 0
     for p in products:
         imgs = p.get('image_urls', []) or []
         if len(imgs) > max_images:
             max_images = len(imgs)
 
-    output = io.StringIO()
-    writer = csv.writer(output)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "WB"
 
-    # Заголовки
-    headers = ["Ссылка", "Название", "Количество продаж"]
-    headers += [f"Изображение {i}" for i in range(1, max_images + 1)]
-    writer.writerow(headers)
+    headers = ["Ссылка", "Название", "Количество продаж"] + [f"Изображение {i}" for i in range(1, max_images + 1)]
+    ws.append(headers)
 
-    # Строки
     for p in products:
         product_id = p.get('id', '')
         url = f"https://www.wildberries.ru/catalog/{product_id}/detail.aspx" if product_id else ''
         name = p.get('name', '')
         sales = p.get('sales', 0)
         images = (p.get('image_urls', []) or [])[:max_images]
-        # Дополняем пустыми ячейками до max_images
+        # Формируем строку без изображений
+        row = [url, name, sales]
+        # Добавляем ячейки с формулами IMAGE()
+        for img in images:
+            # Формула Excel: =IMAGE("url"; 1) для Google Sheets совместима как IMAGE, для Excel 365 поддержка функции IMAGE()
+            # В русской локали разделитель аргументов — ';'
+            row.append(f"=IMAGE(\"{img}\"; 1)")
+        # Если изображений меньше максимума — добиваем пустыми
         if len(images) < max_images:
-            images = images + [""] * (max_images - len(images))
-        row = [url, name, sales] + images
-        writer.writerow(row)
+            row += [""] * (max_images - len(images))
+        ws.append(row)
 
-    data = output.getvalue().encode('utf-8-sig')
-    output.close()
-    return data
+    # Немного ширины колонкам
+    col_widths = [45, 50, 18] + [22] * max_images
+    for idx, width in enumerate(col_widths, start=1):
+        ws.column_dimensions[get_column_letter(idx)].width = width
+
+    stream = io.BytesIO()
+    wb.save(stream)
+    return stream.getvalue()
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = (
         "Привет! Пришлите текст запроса (query), например:\n"
         "куртка женская черная\n\n"
-        "Я выполню парсинг и пришлю .csv файл с колонками: \n"
-        "Ссылка, Название, Количество продаж, Изображения."
+        "Я выполню парсинг и пришлю .xlsx файл с колонками: \n"
+        "Ссылка, Название, Количество продаж, Изображение 1..N (в ячейках формула IMAGE())."
     )
     await update.message.reply_text(text)
 
@@ -96,10 +107,8 @@ async def handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text("Пустой запрос. Пришлите текст запроса.")
         return
 
-    # Уведомление о загрузке
     await context.bot.send_chat_action(chat_id=update.effective_chat.id, action=ChatAction.UPLOAD_DOCUMENT)
 
-    # Читаем cookies
     try:
         with open(COOKIES_FILE, 'r') as f:
             mayak_cookies = f.read().strip()
@@ -121,9 +130,9 @@ async def handle_query(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await update.message.reply_text("Ничего не найдено или ошибка при получении данных.")
             return
 
-        csv_bytes = products_to_csv_bytes(products)
-        filename = f"wb_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        await update.message.reply_document(document=InputFile(io.BytesIO(csv_bytes), filename=filename),
+        xlsx_bytes = products_to_xlsx_bytes(products)
+        filename = f"wb_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        await update.message.reply_document(document=InputFile(io.BytesIO(xlsx_bytes), filename=filename),
                                             caption=f"Результат для запроса: {query}")
     except Exception as e:
         logger.exception("Ошибка в обработке запроса")
