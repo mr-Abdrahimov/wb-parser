@@ -57,6 +57,65 @@ python3 interactive_parser.py
 
 Интерактивный режим позволяет вводить запросы в реальном времени и сохранять результаты.
 
+### CLI режим (командная строка)
+
+```bash
+# Базовое использование
+python3 wb_cli.py -q "куртка женская черная"
+
+# С показом общего количества
+python3 wb_cli.py -q "iPhone" --total
+
+# Загрузка нескольких страниц
+python3 wb_cli.py -q "телефон" --pages 3
+
+# Сохранение в файл
+python3 wb_cli.py -q "ноутбук" --save
+
+# JSON формат
+python3 wb_cli.py -q "кроссовки" --format json
+
+# CSV формат с сохранением
+python3 wb_cli.py -q "платье" --format csv --save
+
+# Тихий режим (только результаты)
+python3 wb_cli.py -q "часы" --quiet
+```
+
+## CLI Параметры
+
+### Основные опции
+
+- `-q, --query` - Поисковый запрос (обязательный)
+- `-p, --page` - Номер страницы (по умолчанию: 1)
+- `--pages` - Количество страниц для загрузки (с 1 по указанную)
+- `-s, --save` - Сохранить в файл (автоматическое имя или указанное)
+- `--total` - Показать общее количество товаров
+- `--quiet` - Тихий режим (только результаты)
+- `--format` - Формат вывода: list, json, csv
+
+### Примеры CLI команд
+
+```bash
+# Справка
+python3 wb_cli.py --help
+
+# Простой поиск
+python3 wb_cli.py -q "куртка женская черная"
+
+# Поиск с общим количеством
+python3 wb_cli.py -q "iPhone" --total
+
+# Загрузка 3 страниц
+python3 wb_cli.py -q "телефон" --pages 3
+
+# Сохранение в JSON
+python3 wb_cli.py -q "ноутбук" --format json --save
+
+# Тихий режим с CSV
+python3 wb_cli.py -q "кроссовки" --quiet --format csv
+```
+
 ## API класса WBParser
 
 ### Методы
@@ -85,8 +144,10 @@ python3 interactive_parser.py
 ```
 wb-parser/
 ├── wb_parser.py           # Основной модуль парсера
+├── wb_cli.py             # CLI версия с аргументами командной строки
 ├── example_usage.py       # Примеры использования
 ├── interactive_parser.py  # Интерактивный парсер
+├── test_parser.py         # Тесты
 ├── requirements.txt       # Зависимости
 └── README.md             # Документация
 ```
