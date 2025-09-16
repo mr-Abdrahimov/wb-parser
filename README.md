@@ -40,16 +40,16 @@ python3 wb_sales_parser.py -q "поисковый запрос"
 python3 wb_sales_parser.py -q "куртка женская черная"
 
 # С ограничением количества товаров
-python3 wb_sales_parser.py -q "iPhone" --max-products 10
+python3 wb_sales_parser.py -q "куртка женская черная" --max-products 10
 
 # С табличным выводом
-python3 wb_sales_parser.py -q "телефон Samsung" --show-table
+python3 wb_sales_parser.py -q "куртка женская черная" --show-table
 
 # Показать ссылки на изображения
-python3 wb_sales_parser.py -q "куртка" --show-images
+python3 wb_sales_parser.py -q "куртка женская черная" --show-images
 
 # Только ссылки на изображения (по одной на строке)
-python3 wb_sales_parser.py -q "iPhone" --images-only
+python3 wb_sales_parser.py -q "куртка женская черная" --images-only
 ```
 
 ## Формат вывода
