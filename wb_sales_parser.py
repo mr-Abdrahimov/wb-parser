@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 def write_csv(path: str, products: List[Dict[str, Any]]):
     """Сохраняет CSV со столбцами: Ссылка, Название, Количество продаж, Изображения"""
     fieldnames = ["Ссылка", "Название", "Количество продаж", "Изображения"]
-    
+
     try:
         with open(path, 'w', newline='', encoding='utf-8-sig') as f:
             writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -51,7 +51,7 @@ def main():
         description='Получение списка товаров WB отсортированных по продажам',
         formatter_class=argparse.RawTextHelpFormatter
     )
-    
+
     parser.add_argument(
         '-q', '--query',
         type=str,
@@ -70,33 +70,33 @@ def main():
         default=20,
         help='Максимальное количество товаров (по умолчанию: 20)'
     )
-    
+
     parser.add_argument(
         '--show-table',
         action='store_true',
         help='Показать результаты в виде таблицы'
     )
-    
+
     parser.add_argument(
         '--show-images',
         action='store_true',
         help='Показать ссылки на изображения'
     )
-    
+
     parser.add_argument(
         '--images-only',
         action='store_true',
         help='Показать только ссылки на изображения (по одной на строку)'
     )
-    
+
     parser.add_argument(
         '--csv',
         type=str,
         help='Сохранить результат в CSV файл (столбцы: Ссылка, Название, Количество продаж, Изображения)'
     )
-    
+
     args = parser.parse_args()
-    
+
     # Загружаем cookies
     mayak_cookies = None
     try:
@@ -111,29 +111,29 @@ def main():
     except Exception as e:
         logger.error(f"Ошибка при чтении файла cookies: {e}")
         sys.exit(1)
-    
+
     # Инициализируем парсер с cookies
     wb_parser = WBParser(mayak_cookies=mayak_cookies)
-    
+
     logger.info(f"Начинаем поиск и получение подробной информации для запроса: '{args.query}'")
-    
+
     # Получаем подробную информацию с pics и сортировкой
     combined_products = wb_parser.get_products_detailed_info_with_pics(
-        args.query, 
-        page=1, 
+        args.query,
+        page=1,
         max_products=args.max_products
     )
-    
+
     if not combined_products:
         logger.warning("Не удалось получить подробную информацию о товарах.")
         sys.exit(1)
-    
+
     # Экспорт CSV при необходимости
     if args.csv:
         write_csv(args.csv, combined_products)
         print(f"✅ CSV сохранён: {args.csv}")
         return
-    
+
     # Иначе, обычный вывод
     if args.images_only:
         print("\n🖼️ Ссылки на изображения:")
